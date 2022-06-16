@@ -19,6 +19,23 @@
    cd ios && pod install
 ```
 
+add to Info.plist
+```xml
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This is needed to get location updates in the background</string>
+	
+    <key>NSLocationWhenInUseUsageDescription</key>
+	<string>This is needed to get location updates when in use</string>
+    
+    <key>UIBackgroundModes</key>
+	<array>
+        ...
+		<string>fetch</string>
+		<string>location</string>
+		
+	</array>
+```
+
 ### Android
 
 add permission in AndroidManifest.xml
@@ -52,3 +69,42 @@ add this lines in AndroidManifest.xml
 </application>
 ```
    
+
+## Usage
+
+in app initEmitter
+
+```javascript
+    
+    import { SBLocation } from 'servisofts-background-location';
+    
+    ...
+
+    const App = (props) => {
+        SBLocation.initEmitter((data) => {
+            if (data?.type == "locationChange") {
+                console.log(data);
+                //Send http to server
+            }
+            return true;
+        })
+
+    ...
+    
+```
+
+
+Start
+```javascript
+          SBLocation.start({
+            nombre: "Title notification",
+            label: "Body notification",
+            minTime: 1000, 
+            minDistance: 1 
+          });
+```
+
+Stop
+```javascript
+        SBLocation.stop();
+```
