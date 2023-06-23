@@ -1,8 +1,10 @@
 package com.servisofts.background.location;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.provider.Settings;
 
 import androidx.annotation.NonNull;
@@ -24,6 +26,15 @@ public class SSBL_Module extends ReactContextBaseJavaModule {
         super(reactContext);
         this.reactContext = reactContext;
     }
+    public String response(String estado, String error){
+        String obj = "{";
+        obj+="\"estado\":\""+estado+"\"";
+        if(!error.isEmpty()){
+            obj+=",\"error\":\""+error+"\"";
+        }
+        obj+="}";
+        return obj;
+    }
 
     @NonNull
     @Override
@@ -43,18 +54,62 @@ public class SSBL_Module extends ReactContextBaseJavaModule {
         }
         return true;
     }
+
+    public boolean checkPermisionBackground(){
+        if (ActivityCompat.checkSelfPermission(this.reactContext, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+        return true;
+    }
+
+
+    @ReactMethod
+    public void isActive(Promise cb){
+        ActivityManager manager = (ActivityManager) reactContext.getSystemService(reactContext.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (SSBL_Service.class.getName().equals(service.service.getClassName())) {
+                cb.resolve( response("exito",""));
+                return;
+            }
+        }
+        cb.resolve( response("error",""));
+        return;
+
+    }
     @ReactMethod
     public void start(String data, Promise cb) {
         try{
             if(checkPermision()==false){
-                cb.resolve( "error permisos");
+                cb.resolve( response("error","permision"));
                // return;
             }else{
+                if(!checkPermisionBackground()){
+                    // cb.resolve( response("error","permision_background"));
+                    // return;
+                }
+                LocationManager lm = (LocationManager)this.reactContext.getSystemService(this.reactContext.LOCATION_SERVICE);
+                boolean gps_enabled = false;
+                boolean network_enabled = false;
+
+                try {
+                    gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                } catch(Exception ex) {}
+
+                try {
+                    network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+                } catch(Exception ex) {}
+
+                if(!gps_enabled || !network_enabled) {
+                    cb.resolve( response("error","gps"));
+                    return;
+                }
+
+
                 Intent serviceIntent = new Intent(this.reactContext, SSBL_Service.class);
                 getCurrentActivity().stopService(serviceIntent);
                 serviceIntent.putExtra("props",data);
                 ContextCompat.startForegroundService(this.reactContext, serviceIntent);
-                cb.resolve( "exito");
+                cb.resolve( response("exito",""));
             }
 
         }catch (Exception e){
@@ -67,7 +122,7 @@ public class SSBL_Module extends ReactContextBaseJavaModule {
         try{
             Intent serviceIntent = new Intent(this.reactContext, SSBL_Service.class);
             getCurrentActivity().stopService(serviceIntent);
-            cb.resolve( "exito");
+            cb.resolve( response("exito",""));
         }catch (Exception e){
             cb.resolve(e.getLocalizedMessage());
         }

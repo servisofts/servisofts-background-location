@@ -59,6 +59,7 @@ add this lines in AndroidManifest.xml
 		<service android:name="com.servisofts.background.location.SSBL_event" android:enabled="true" android:exported="true"/>
 		<receiver android:name="com.servisofts.background.location.SSBL_BootUpReceiver"
 			android:enabled="true"
+            android:exported="true"
 			android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED" />

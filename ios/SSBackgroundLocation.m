@@ -54,19 +54,18 @@ RCT_EXPORT_METHOD(hasPermissions:(NSString *)permissionType
 RCT_EXPORT_METHOD(stop:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject)
 {
-    NSArray *arbitraryReturnVal = @[@"exito"];
     [locationManager stopUpdatingLocation];
     [locationManager stopMonitoringSignificantLocationChanges];
-  resolve(arbitraryReturnVal);
+    resolve(@"{\"estado\":\"exito\"}");
 }
 
 RCT_EXPORT_METHOD(start:(NSString *)data
                  requestPermissionsWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSArray *arbitraryReturnVal = @[@"exito"];
+  //NSArray *arbitraryReturnVal = @[@"exito"];
   //RCTLogInfo(@"Pretending to do something natively: requestPermissions %@", permissionType);
-  
+    
     NSData *json = [data dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *jsonOutput = [NSJSONSerialization JSONObjectWithData:json options:0 error:nil];
     
@@ -83,7 +82,6 @@ RCT_EXPORT_METHOD(start:(NSString *)data
     //RCTLogInfo(@"init locationManager...");
     locationManager = [[CLLocationManager alloc] init];
   }
-  
     
   locationManager.delegate = self;
   locationManager.allowsBackgroundLocationUpdates = true;
@@ -94,6 +92,27 @@ RCT_EXPORT_METHOD(start:(NSString *)data
   } else if ([locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)]) {
     [locationManager requestWhenInUseAuthorization];
   }
+    
+    CLAuthorizationStatus status = [CLLocationManager authorizationStatus];
+    switch (status) {
+        case kCLAuthorizationStatusNotDetermined:
+          //todo
+            break;
+        case kCLAuthorizationStatusAuthorizedAlways:
+                //todo
+            break;
+        case kCLAuthorizationStatusAuthorizedWhenInUse:
+                resolve(@"{\"estado\":\"error\",\"error\":\"permision_background\"}");
+                return;
+        case kCLAuthorizationStatusRestricted:
+                resolve(@"{\"estado\":\"error\",\"error\":\"permision\"}");
+                return;
+        case kCLAuthorizationStatusDenied:
+                resolve(@"{\"estado\":\"error\",\"error\":\"permision\"}");
+                return;
+        default:
+            break;
+    }
   
   locationManager.desiredAccuracy = kCLLocationAccuracyBest;
   locationManager.distanceFilter = distance;
@@ -101,7 +120,7 @@ RCT_EXPORT_METHOD(start:(NSString *)data
   [locationManager startUpdatingLocation];
   [locationManager startMonitoringSignificantLocationChanges];
  
-  resolve(arbitraryReturnVal);
+  resolve(@"{\"estado\":\"exito\"}");
    
 }
 

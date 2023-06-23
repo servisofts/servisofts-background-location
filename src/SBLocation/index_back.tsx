@@ -1,5 +1,5 @@
 import { NativeModules, NativeEventEmitter, AppRegistry, Platform } from 'react-native';
-import SStorage from '../SStorage/';
+import SStorage from '../SStorage';
 import Data from "./Data";
 const SSBackgroundLocation = NativeModules.SSBackgroundLocation;
 
@@ -52,17 +52,11 @@ class SBLocation {
     }
     static async start(props: _Props) {
         return new Promise(async (resolve, reject) => {
-            var str = "";
-            if (Platform.OS != "web") {
-                str = await SSBackgroundLocation.start(JSON.stringify({
-                    ...PROPS,
-                    ...props
-                }));
-            } else {
-                str = JSON.stringify({ estado: "exito" })
-            }
+            var str = await SSBackgroundLocation.start(JSON.stringify({
+                ...PROPS,
+                ...props
+            }));
             var resp = JSON.parse(str);
-
             log("[start]", resp);
             if (resp.estado == "exito") {
                 resolve(resp);
@@ -78,12 +72,6 @@ class SBLocation {
         });
     }
     static stop() {
-        if (Platform.OS == "web") {
-            this.connected = false;
-            this.notifyAll({ type: "stop" });
-            SStorage.removeItem("SBLocation");
-            return;
-        }
         SSBackgroundLocation.stop().then(resp => {
             this.connected = false;
             this.notifyAll({ type: "stop" });
@@ -94,17 +82,15 @@ class SBLocation {
     static isRegister = false;
     static callback = null;
     static initEmitter(_callback: (data: any) => boolean) {
-
-        this.isActive().then(e => {
-            this.connected = true;
-        }).catch(e => {
-            this.connected = false;
-        })
         SBLocation.callback = _callback;
-        if (SBLocation.isRegister) return;
+        if (SBLocation.isRegister) {
+            log("Ya esa registrado el emiter")
+            return true;
+        }
         SBLocation.isRegister = true;
         if (Platform.OS == "android") {
             try {
+                SBLocation.isRegister = true;
                 AppRegistry.registerHeadlessTask('SSBackgroundLocation', () => this.Listener);
             } catch (e) {
                 log("tast existente");
@@ -114,7 +100,7 @@ class SBLocation {
             log(em.listeners);
             em.addListener('onLocationChange', this.Listener);
         }
-        log("initEmitter");
+        // log("initEmitter");
 
         // SStorage.getItem("SBLocation", (resp => {
         //     if (resp) {
@@ -124,10 +110,10 @@ class SBLocation {
     }
 
     static Listener = async (props) => {
-        // if (!this.connected) {
-        //     log("location change and  not connected");
-        //     return;
-        // }
+        if (!this.connected) {
+            log("location change and  not connected");
+            return;
+        }
         try {
             if (typeof props.data == "string") {
                 props.data = JSON.parse(props.data);
@@ -135,7 +121,7 @@ class SBLocation {
             Data.onLocationChange(props.data);
             this.notifyAll({ type: "locationChange", data: Data.lastLocationNormaliced, key_usuario: "" });
         } catch (e) {
-            log(" listener " + e);
+
         }
     }
 }

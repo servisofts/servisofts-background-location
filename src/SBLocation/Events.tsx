@@ -18,12 +18,16 @@ export default class Events {
         var dLon = (lon2 - lon1) * Math.PI / 180;
         var y = Math.sin(dLon) * Math.cos(lat2);
         var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-        var bearing:any = Math.atan2(y, x) * 180 / Math.PI;
+        var bearing: any = Math.atan2(y, x) * 180 / Math.PI;
         if (bearing < 0) {
             bearing = bearing + 360;
         }
         bearing = bearing.toFixed(0);
         // bearing = bearing * Math.PI / 180; // to rad
         return bearing;
+    }
+    static timeToDate(time) {
+        var date = new Date(time);
+        return date;
     }
 }

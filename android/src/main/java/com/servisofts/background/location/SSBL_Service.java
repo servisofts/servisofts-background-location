@@ -71,11 +71,12 @@ public class SSBL_Service extends Service implements LocationListener {
 
             createNotificationChannel();
             Intent notificationIntent = new Intent(this,getApplication().getClass());
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            int code = this.getBaseContext().getResources().getIdentifier("notification_icon", "drawable",    this.getBaseContext().getPackageName());
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle(nombre)
                     .setContentText(label)
-//                    .setSmallIcon()
+                    .setSmallIcon(code)
                     .setContentIntent(contentIntent)
                     .setOngoing(true)
                     .build();
