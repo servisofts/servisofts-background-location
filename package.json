@@ -1,6 +1,6 @@
 {
   "name": "servisofts-background-location",
-  "version": "1.0.4",
+  "version": "2.0.1",
   "description": "servisofts-background-location is a library for React Native Web.",
   "main": "index.js",
   "types": "index.d.ts",
